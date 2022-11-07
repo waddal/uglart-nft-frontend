@@ -10,13 +10,22 @@ function App() {
 
   return (
     <div className="App">
-      <div className="container">
-        <div className="header-container">
-          <h1>uglart.</h1>
-          <p className="sub-text">Each art. Each ugly. Mint yours today.</p>
-          {renderNotConnectedContainer()}
+      <div className="header">
+        <h1>uglart.</h1>
+        <p className="sub-text">Its ugly. Its art. Mint yours today.</p>
+      </div>
+      <div className="card-container">
+        <div className="card">
+          <img src="#" alt="nft" />
+        </div>
+        <div className="card">
+          <img src="#" alt="nft" />
+        </div>
+        <div className="card">
+          <img src="#" alt="nft" />
         </div>
       </div>
+      {renderNotConnectedContainer()}
     </div>
   );
 }
