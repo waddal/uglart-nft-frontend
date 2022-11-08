@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { ethers } from 'ethers';
+
 import "./App.css";
+import UglartNFT from './utils/UglartNFT.json'
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState("");
+
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
-    console.log("CHECK: ", import.meta.env.VITE_CONTRACT_ADDRESS);
 
     if (!ethereum) {
       console.log("Make sure you have metamask!");
@@ -55,6 +58,38 @@ function App() {
     </button>
   );
 
+  const askContractToMintNft = async () => {
+    const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
+
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          UglartNFT.abi,
+          signer
+        );
+
+        console.log("Going to pop wallet now to pay gas...");
+        let nftTxn = await connectedContract.makeUglartNFT();
+
+        console.log("Mining...please wait.");
+        await nftTxn.wait();
+
+        console.log(
+          `Mined, see transaction: https://goerli.etherscan.io/tx/${nftTxn.hash}`
+        );
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
@@ -79,7 +114,7 @@ function App() {
       {currentAccount === "" ? (
         renderNotConnectedContainer()
       ) : (
-        <button onClick={null} className="cta-button connect-wallet-button">
+        <button onClick={askContractToMintNft} className="cta-button connect-wallet-button">
           Mint NFT
         </button>
       )}
