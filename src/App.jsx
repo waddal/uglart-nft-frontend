@@ -5,6 +5,7 @@ function App() {
   const [currentAccount, setCurrentAccount] = useState("");
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
+    console.log("CHECK: ", import.meta.env.VITE_CONTRACT_ADDRESS);
 
     if (!ethereum) {
       console.log("Make sure you have metamask!");
