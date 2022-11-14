@@ -6,6 +6,8 @@ import UglartNFT from "./utils/UglartNFT.json";
 
 function App() {
   const [currentAccount, setCurrentAccount] = useState("");
+  const [isMining, setIsMining] = useState(false);
+  const [isMinted, setIsMinted] = useState(null);
   const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 
   const checkIfWalletIsConnected = async () => {
@@ -30,7 +32,6 @@ function App() {
     }
   };
 
-  // Connecting MetaMask
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
@@ -71,8 +72,8 @@ function App() {
 
         // This will essentially "capture" our event when our contract throws it.
         connectedContract.on("NewUglartNFTMinted", (from, tokenId) => {
-          console.log(from, tokenId.toNumber());
-          alert(
+          setIsMinted(tokenId.toNumber());
+          console.log(
             `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
           );
         });
@@ -90,11 +91,10 @@ function App() {
     try {
       const { ethereum } = window;
 
-      // check if user is connected to the correct network
-      let chainId = await ethereum.request({ method: 'eth_chainId' });
+      let chainId = await ethereum.request({ method: "eth_chainId" });
       console.log("Connected to chain " + chainId);
-      
-      const goerliChainId = "0x5"; 
+
+      const goerliChainId = "0x5";
       if (chainId !== goerliChainId) {
         alert("You are not connected to the Goerli Test Network!");
       }
@@ -111,9 +111,14 @@ function App() {
         console.log("Going to pop wallet now to pay gas...");
         let nftTxn = await connectedContract.makeUglartNFT();
 
-        console.log("Mining...please wait.");
-        await nftTxn.wait();
+        if (nftTxn) setIsMining(true);
+        console.log("Mining...please wait.", isMining);
 
+        let txnComplete = await nftTxn.wait();
+        if (txnComplete) setIsMining(false);
+        console.log("isMining: ", isMining);
+
+        console.log("Mining complete!: ", txnComplete);
         console.log(
           `Mined, see transaction: https://goerli.etherscan.io/tx/${nftTxn.hash}`
         );
@@ -143,9 +148,21 @@ function App() {
     <button
       onClick={askContractToMintNft}
       className="cta-button connect-wallet-button"
+      disabled={isMining}
     >
-      Mint NFT
+      {isMining ? "Mining..." : "Mint NFT"}
     </button>
+  );
+
+  const renderLinkContainer = () => (
+    <a onClick={() => setIsMinted(null)}
+      className="link-container"
+      href={`https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${isMinted}`}
+      target="_blank"
+      alt="opensea nft link"
+    >
+      Congrats, you created something ugly.
+    </a>
   );
 
   return (
@@ -165,6 +182,7 @@ function App() {
           <img src="#" alt="nft" />
         </div>
       </div>
+      {isMinted && renderLinkContainer()}
       {currentAccount === ""
         ? renderNotConnectedContainer()
         : renderMintContainer()}
